@@ -70,11 +70,11 @@ $('#twitterform').submit(function(e) {
 	// get the first track of the entered screen name
 	var url = "mixedtweets.php?action=getTrack&q=" + $('#twittername').val();
 	$.getJSON(url, function(data) {
-		if (data[0] && data[0]['message']) {
+		if (data && data[0] && data[0]['message']) {
 			$('#scCont').html('');
 			$('<div>')
 				.attr('class', 'alert alert-box alert-error status_msg')
-				.html('<i class="icon-warning-sign"></i> ' + data[0]['message'])
+				.html('<i class="icon-warning-sign"></i> ' + data[0]['message'] + '. Blame Twitter and please try again later :(')
 				.appendTo('#scCont');
 		} else if (data) {
 			var track_url = data['track_url'];
@@ -94,13 +94,15 @@ $('#twitterform').submit(function(e) {
 
 						// capture the widget and bind the finish event to play the next track
 						var widget = SC.Widget(document.querySelector('#scCont iframe'));
-						setTimeout(function() {widget.bind(SC.Widget.Events.READY, checkIfPlaying)}, 9000);
+						setTimeout(function() {widget.bind(SC.Widget.Events.READY, checkIfPlaying)}, 15000);
 						widget.bind(SC.Widget.Events.FINISH, playNextTrack);
 
-						// add the javascript media controls
-						$('<a>').attr('href', '#play').attr('class', 'mt_play').html('<i class="icon-play"></i> play').appendTo('.controls');
-						$('<a>').attr('href', '#pause').attr('class', 'mt_pause').html('<i class="icon-pause"></i> pause').appendTo('.controls');
-						$('<a>').attr('href', '#next').attr('class', 'mt_next').html('<i class="icon-forward"></i> next').appendTo('.controls');
+						// add the javascript media controls if they aren't already there
+						if (!$('.mt_play').is('*')) {
+							$('<a>').attr('href', '#play').attr('class', 'mt_play').html('<i class="icon-play"></i> play').appendTo('.controls');
+							$('<a>').attr('href', '#pause').attr('class', 'mt_pause').html('<i class="icon-pause"></i> pause').appendTo('.controls');
+							$('<a>').attr('href', '#next').attr('class', 'mt_next').html('<i class="icon-forward"></i> next').appendTo('.controls');
+						}
 
 						getTrackMentions(track_url);
 					});
@@ -135,7 +137,13 @@ function getNextTrack(user) {
 
 	var url = "mixedtweets.php?action=getNextTrack&q=" + user;
 	$.getJSON(url, function(data) {
-		if (data) {
+		if (data && data[0] && data[0]['message']) {
+			$('#nextCont').html('');
+			$('<div>')
+				.attr('class', 'alert alert-box alert-error status_msg')
+				.html('<i class="icon-warning-sign"></i> ' + data[0]['message'] + '. Blame Twitter and please try again later :(')
+				.appendTo('#nextCont');
+		} else if (data) {
 			var next_track = data['track_url'];
 			var next_user = data['twitter_user'];
 
@@ -240,7 +248,7 @@ function playNextTrack() {
 	}
 
 	widget.bind(SC.Widget.Events.FINISH, playNextTrack);
-	setTimeout(function() {widget.bind(SC.Widget.Events.READY, checkIfPlaying)}, 9000);
+	setTimeout(function() {widget.bind(SC.Widget.Events.READY, checkIfPlaying)}, 15000);
 
 	$('#twittername').val(track_user);
 
